@@ -9,10 +9,10 @@
 #include <dht.h>
 
 #define ADDR BH1750_ADDR_LO
-#define I2C_MASTER_SCL 19
-#define I2C_MASTER_SDA 18
+#define I2C_MASTER_SCL 22
+#define I2C_MASTER_SDA 21
 #define DHT_TYPE_AM2301 1
-#define DHT11_PIN 17
+#define DHT11_PIN 2
 
 // Instatiate shared memory variables
 uint16_t lux = 0;
@@ -69,18 +69,15 @@ void read_temperature_humidity_measure(void *arg) {
 void send_data(void *arg) {
   while(1) // Infinite task
   {
-    xSemaphoreTake(luminosity_mutex, portMAX_DELAY); // Protect shared variables region
     xSemaphoreTake(temperature_mutex, portMAX_DELAY); // Protect shared variables region
-
-    // TODO: really format print data
-    printf("Humidity: %.1f%% Temp: %.1fC\n", humidity, temperature);
-    printf("Lux: %d\n", lux);
-
+    printf("\n💧 Humidity: %.1f%%\n", humidity);
+    printf("🌡  Temperature: %.1fC\n", temperature);
     xSemaphoreGive(temperature_mutex); // Free from protection
+
+    xSemaphoreTake(luminosity_mutex, portMAX_DELAY); // Protect shared variables region
+    printf("💡 Lux: %d\n", lux);
     xSemaphoreGive(luminosity_mutex); // Free from protection
 
-    // If you read the sensor data too often, it will heat up
-    // http://www.kandrsmith.org/RJS/Misc/Hygrometers/dht_sht_how_fast.html
     vTaskDelay(pdMS_TO_TICKS(2000)); // ~2s delay
   }
 }
